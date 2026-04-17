@@ -30,8 +30,8 @@ MAKO_CMAP = ListedColormap(sns.color_palette("mako", 256))
 
 plt.rcParams["figure.dpi"] = 144
 
-TRAINING_DATA_PATH   = '../simpPepGeoMean.xlsx'
-PREDICTION_DATA_PATH = '/home/dhc97/Peptide AMP Prediction Python/prevDataPepMR5.xlsx'
+TRAINING_DATA_PATH   = '../data/simpPepGeoMean.xlsx'
+PREDICTION_DATA_PATH = '../data/prevDataPepMR5.xlsx'
 
 # ── Utility functions ──────────────────────────────────────────────────────────
 
