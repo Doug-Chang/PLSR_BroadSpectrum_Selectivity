@@ -3,9 +3,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
 from matplotlib.colors import ListedColormap
-from matplotlib import colormaps
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.metrics import r2_score
@@ -32,8 +30,8 @@ MAKO_CMAP = ListedColormap(sns.color_palette("mako", 256))
 
 plt.rcParams["figure.dpi"] = 144
 
-TRAINING_DATA_PATH   = '../data/simpPepGeoMean.xlsx'
-PREDICTION_DATA_PATH = '../data/prevDataPepMR5.xlsx'
+TRAINING_DATA_PATH   = '../data/training_set.xlsx'
+PREDICTION_DATA_PATH = '../data/prediction_set.xlsx'
 
 OUTPUT_DIR = Path('../output')
 OUTPUT_DIR.mkdir(exist_ok=True)
@@ -214,8 +212,8 @@ def plot_3d_loadings(scores_X, loadings_x, loadings_y, colorbar_values,
     ax.plot([], [], label="X loadings", color="darkslategrey")
     ax.plot([], [], label="Y loadings", color="crimson")
 
-    origin8 = [0, 0, 0]
-    X1, Y1, Z1 = zip(*[origin8] * len(x_labels))
+    origin = [0, 0, 0]
+    X1, Y1, Z1 = zip(*[origin] * len(x_labels))
     ax.quiver(X1, Y1, Z1,
               loadings_x.loc[:, 0], loadings_x.loc[:, 1], loadings_x.loc[:, 2],
               color='darkslategrey')
@@ -223,8 +221,7 @@ def plot_3d_loadings(scores_X, loadings_x, loadings_y, colorbar_values,
         ax.text(*loadings_x.loc[i, :3], name, fontsize=7,
                 bbox=dict(boxstyle="round,pad=0.3", ec="k", fc="white", alpha=0.7))
 
-    origin9 = [0, 0, 0]
-    X2, Y2, Z2 = zip(*[origin9] * len(y_labels))
+    X2, Y2, Z2 = zip(*[origin] * len(y_labels))
     ax.quiver(X2, Y2, Z2,
               loadings_y.loc[:, 0], loadings_y.loc[:, 1], loadings_y.loc[:, 2],
               color='crimson')

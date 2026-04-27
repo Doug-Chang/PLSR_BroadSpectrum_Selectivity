@@ -1,16 +1,12 @@
 import pandas as pd
 import numpy as np
-import scipy as sp
 import seaborn as sns
-from sklearn import linear_model
-import math
 import matplotlib.pyplot as plt
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 labels = [ 'E. coli','S. aureus','C. albicans', 'C. tropicalis', 'C. parapsilosis', 'C. glabrata', '3T3 Fibroblasts', 'HUVECs','Red Blood Cells']
 outputVariables = ['MIC_EC','MIC_SA','MIC_CA', 'MIC_CT','MIC_CP','MIC_CG','IC50_3T3','IC50_HUVEC','HC10']
 OUTPUT_DIR = "../output/"
-df = pd.read_excel('../data/PearsonSpecies.xlsx')
+df = pd.read_excel('../data/species_mic_values.xlsx')
 #df = df.truncate(after = 17) 
 
 #check indipendent variable colinearity
