@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -33,7 +35,10 @@ plt.rcParams["figure.dpi"] = 144
 TRAINING_DATA_PATH   = '../data/simpPepGeoMean.xlsx'
 PREDICTION_DATA_PATH = '../data/prevDataPepMR5.xlsx'
 
-# ── Utility functions ──────────────────────────────────────────────────────────
+OUTPUT_DIR = Path('../output')
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+# ── functions ──────────────────────────────────────────────────────────
 
 def load_and_preprocess(path):
     df = pd.read_excel(path)
@@ -264,20 +269,25 @@ training_star = scores_train.iloc[0]  # reference peptide carried into predictio
 # ── Training set plots ─────────────────────────────────────────────────────────
 
 plot_loadings_biplot(loadings_x, loadings_y, DESCRIPTORS, OUTPUT_VARS)
+plt.savefig(OUTPUT_DIR / 'loadings_biplot.png', bbox_inches='tight')
 
 plot_scores_biplot(scores_train, loadings_x, loadings_y, actual_selectivity_tr,
                    cbar_title='Log2 Selectivity', title='Actual Broad Spectrum Selectivity',
                    cbar_min=-1, cbar_max=3.5)
+plt.savefig(OUTPUT_DIR / 'training_actual_selectivity_scores.png', bbox_inches='tight')
 
 plot_scores_biplot(scores_train, loadings_x, loadings_y, pred_selectivity_tr,
                    cbar_title='Log2 Selectivity', title='Predicted Broad Spectrum Selectivity',
                    cbar_min=-1, cbar_max=3.5)
+plt.savefig(OUTPUT_DIR / 'training_predicted_selectivity_scores.png', bbox_inches='tight')
 
 plot_prediction_accuracy(avg_act_pred_tr, avg_tox_pred_tr,
                          avg_act_true_tr, avg_tox_true_tr, title='Broad Spectrum')
+plt.savefig(OUTPUT_DIR / 'accuracy_broad_spectrum.png', bbox_inches='tight')
 for i in range(9):
     plot_prediction_accuracy(train_pred[:, i], avg_tox_pred_tr,
                              Y.values[:, i], avg_tox_true_tr, title=OUTPUT_VARS[i])
+    plt.savefig(OUTPUT_DIR / f'accuracy_{OUTPUT_VARS[i]}.png', bbox_inches='tight')
 
 # ── Load prediction set ────────────────────────────────────────────────────────
 
@@ -297,6 +307,7 @@ avg_sel  = avg_tox - avg_act
 
 plot_prediction_accuracy(preds[:, 0], preds[:, 6],
                          Y_test.values[:, 0], Y_test.values[:, 1], title='C. albicans validation')
+plt.savefig(OUTPUT_DIR / 'accuracy_c_albicans_validation.png', bbox_inches='tight')
 
 # ── Prediction set biplots ─────────────────────────────────────────────────────
 
@@ -305,31 +316,38 @@ scores_pred = pd.DataFrame(model.transform(X_pred))
 plot_scores_biplot(scores_pred, loadings_x, loadings_y, HC10_sel_actual,
                    cbar_title='Log2 Selectivity', title='Actual C. albicans Selectivity',
                    cbar_min=-2, star_scores=training_star)
+plt.savefig(OUTPUT_DIR / 'pred_actual_c_albicans_selectivity_scores.png', bbox_inches='tight')
 
 plot_scores_biplot(scores_pred, loadings_x, loadings_y, HC10_sel_pred,
                    cbar_title='Log2 Selectivity', title='Predicted C. albicans Selectivity',
                    cbar_min=-2, star_scores=training_star)
+plt.savefig(OUTPUT_DIR / 'pred_predicted_c_albicans_selectivity_scores.png', bbox_inches='tight')
 
 plot_scores_biplot(scores_pred, loadings_x, loadings_y, avg_sel,
                    cbar_title='$Log_2$ Broad Spectrum Selectivity',
                    title='Predicted Broad Spectrum Selectivity',
                    cbar_min=-1, cbar_max=3.5, star_scores=training_star)
+plt.savefig(OUTPUT_DIR / 'pred_predicted_broad_spectrum_selectivity_scores.png', bbox_inches='tight')
 
 plot_3d_scores(scores_pred, HC10_sel_pred,
                cbar_title='Log2 Selectivity', title='Predicted C. albicans Selectivity',
                cbar_min=-2, star_scores=training_star)
+plt.savefig(OUTPUT_DIR / '3d_predicted_c_albicans_selectivity.png', bbox_inches='tight')
 
 plot_3d_scores(scores_pred, HC10_sel_actual,
                cbar_title='Log2 Selectivity', title='Actual C. albicans Selectivity',
                cbar_min=-2, star_scores=training_star)
+plt.savefig(OUTPUT_DIR / '3d_actual_c_albicans_selectivity.png', bbox_inches='tight')
 
 plot_3d_scores(scores_pred, avg_sel,
                cbar_title='Log2 Selectivity', title='Predicted Broad Spectrum Selectivity',
                cbar_min=-1, cbar_max=3.5, star_scores=training_star)
+plt.savefig(OUTPUT_DIR / '3d_predicted_broad_spectrum_selectivity.png', bbox_inches='tight')
 
 plot_3d_loadings(scores_pred, loadings_x, loadings_y, avg_sel,
                  cbar_title='Log2 Selectivity', title='Predicted Broad Spectrum Selectivity',
                  x_labels=DESCRIPTORS, y_labels=OUTPUT_VARS, cbar_min=-1, cbar_max=3.5)
+plt.savefig(OUTPUT_DIR / '3d_loadings.png', bbox_inches='tight')
 
 # ── Prediction heatmap sorted by selectivity ───────────────────────────────────
 
@@ -338,11 +356,12 @@ preds_sorted = pd.DataFrame(preds[:, REORDER], index=pep_ids, columns=SPECIES_LA
 preds_sorted['avgSelectivity'] = avg_sel
 preds_sorted = preds_sorted.sort_values('avgSelectivity', ascending=False)
 
-plt.figure()
+fig, ax = plt.subplots()
 preds_labelled = preds_sorted[SPECIES_LABELS].reset_index(drop=True)
 ax = sns.heatmap(preds_labelled, cmap='BuPu', yticklabels=False,
-                 cbar_kws={'label': 'Peptide Toxicity Concentration (log2)'})
+                 cbar_kws={'label': 'Peptide Toxicity Concentration (log2)'}, ax=ax)
 ax.set_ylabel('Peptides sorted by high to low BSI')
+plt.savefig(OUTPUT_DIR / 'prediction_heatmap.png', bbox_inches='tight')
 
 # ── Pearson correlation heatmap ────────────────────────────────────────────────
 
@@ -353,6 +372,7 @@ pval = calculate_pvalues(preds_sorted[SPECIES_LABELS])
 plt.figure(figsize=(12, 10))
 sns.heatmap(corr, mask=mask, cmap='coolwarm', vmin=-1, vmax=1, square=True,
             cbar_kws={'label': 'Pearson correlation coefficient'})
+plt.savefig(OUTPUT_DIR / 'pearson_correlation.png', bbox_inches='tight')
 
 # ── Coefficient heatmap ────────────────────────────────────────────────────────
 
@@ -366,6 +386,7 @@ coef_sorted = coef.sort_values('E. coli')
 plt.figure(figsize=(6, 4))
 sns.heatmap(coef_sorted, cmap='coolwarm_r', vmin=-1.5, vmax=1.5,
             cbar_kws={'label': 'Coefficient'})
+plt.savefig(OUTPUT_DIR / 'coefficient_heatmap.png', bbox_inches='tight')
 
 # ── Feature importance ─────────────────────────────────────────────────────────
 
@@ -373,8 +394,9 @@ vips = _calculate_vips(model)
 vips_df = pd.DataFrame(vips, index=DESCRIPTORS, columns=['VIP values'])
 vips_df = vips_df.sort_values('VIP values', ascending=False)
 
-plt.figure()
-vips_df.plot.bar(ax=plt.gca(), color='tab:purple', ylabel='VIP value', legend=False)
+fig, ax = plt.subplots()
+vips_df.plot.bar(ax=ax, color='tab:purple', ylabel='VIP value', legend=False)
+plt.savefig(OUTPUT_DIR / 'vip_importance.png', bbox_inches='tight')
 
 perm = permutation_importance(model, X_train, Y, n_repeats=1000)
 perms_df = pd.DataFrame({
@@ -382,8 +404,9 @@ perms_df = pd.DataFrame({
     'std': perm.importances_std,
 }, index=DESCRIPTORS).sort_values('Permutation importance', ascending=False)
 
-plt.figure()
-perms_df['Permutation importance'].plot(kind='bar', yerr=perms_df['std'])
-plt.ylabel('Permutation importance')
+fig, ax = plt.subplots()
+perms_df['Permutation importance'].plot(kind='bar', yerr=perms_df['std'], ax=ax)
+ax.set_ylabel('Permutation importance')
+plt.savefig(OUTPUT_DIR / 'permutation_importance.png', bbox_inches='tight')
 
 plt.show()
