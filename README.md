@@ -21,7 +21,14 @@ requirements.txt
 
 ## Analysis pipeline
 
-Run core model scripts in order from the `scripts/` directory:
+**All scripts must be run from inside the `scripts/` directory.** They use relative paths (`../data/`, `../output/`) that resolve correctly only from there. Running from the repo root will raise a `FileNotFoundError`.
+
+```bash
+cd scripts
+python cv_component_selection.py
+```
+
+Run core model scripts in order:
 
 | Step | Script | Purpose |
 |------|--------|---------|
@@ -36,7 +43,7 @@ Supplementary / visualization scripts (order-independent):
 | `species_correlation.py` | Pearson correlation heatmap across species MIC values — motivates multivariate over single-species modeling |
 | `plot_mic_curves_BroadSpec.py` | Dose-response curves for all 6 pathogens (4 fungal, 2 bacterial) per training-set peptide |
 | `plot_mic_curves_full_c_albi.py` | Full *C. albicans* MIC curves across the complete peptide library; groups of 5 peptides per figure, saved to `output/CA_mic_plots/` |
-| `plot_ic50_curves.py` | Hill curve fitting for mammalian cytotoxicity (3T3 fibroblasts, HUVECs) using `neutcurve`; saved to `output/plotting_SI/mammalIC50/` |
+| `plot_ic50_curves.py` | Hill curve fitting for mammalian cytotoxicity (3T3 fibroblasts, HUVECs) using `neutcurve`; saved to `output/mammalIC50/` |
 | `plot_HC10_curves.py` | Hemolysis dose-response curves (HC10) across the peptide library; groups of 5 peptides per figure, saved to `output/HC10_plots/` |
 
 ## Peptide descriptors

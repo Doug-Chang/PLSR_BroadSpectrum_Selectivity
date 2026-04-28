@@ -14,8 +14,8 @@ import seaborn as sns
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 VARIANCE_EXPLAINED = {
-    "xR2": [15.0, 32.8, 22.5],  # % variance in X per component
-    "yR2": [40.0, 21.5,  9.5],  # % variance in Y per component
+    "xR2": [15.0, 32.8, 22.5],  # % variance in X per component from original 2023 paper; current sklearn versions output [15.93, 34.67, 23.85]
+    "yR2": [40.0, 21.5,  9.5],  # % variance in Y per component, calculated from cv_component_selection.py
 }
 
 DESCRIPTORS   = ['heli_100', 'heli_15', 'ab ratio', '% Helicity', 'RT', 'ACPC', 'charge', 'MW']
@@ -26,7 +26,7 @@ SPECIES_LABELS = ['E. coli', 'S. aureus', 'C. albicans', 'C. tropicalis',
 TOX_IDX      = [4, 5, 6]   # IC50_3T3, IC50_HUVEC, HC10
 ACTIVITY_IDX = [0, 1, 2, 3, 7, 8]  # all MIC columns
 
-MAKO_CMAP = ListedColormap(sns.color_palette("mako", 256))
+MAKO_CMAP = ListedColormap(sns.color_palette("mako", 256)) #colormap
 
 plt.rcParams["figure.dpi"] = 144
 
@@ -40,6 +40,8 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 def load_and_preprocess(path):
     df = pd.read_excel(path)
+    # Molar elipticity vlaues are negative in amplitude; inverse them for easier 
+    # interpretation of higher ME100 or ME15 = higher helicity
     df['ME100'] *= -1
     df['ME15']  *= -1
     return df.rename(columns={"Helicity": "% Helicity", "ME100": "heli_100", "ME15": "heli_15"})
@@ -50,6 +52,9 @@ def log2_selectivity(pred_MIC, pred_tox, actual_MIC, actual_tox):
 
 
 def dilution_accuracy(predicted, actual):
+    """Returns (% within 2-fold, % within 4-fold) of actual values.
+    Thresholds are in log2 space: d < 1 → within 2^1 = 2-fold; d < 2 → within 2^2 = 4-fold.
+    """
     diff = np.abs(predicted - actual)
     n = actual.size
     return (sum(d < 1 for d in diff) / n * 100,
@@ -57,6 +62,8 @@ def dilution_accuracy(predicted, actual):
 
 
 def calculate_pvalues(df):
+    """Computes pairwise Pearson p-values between all column pairs in df.
+    """
     cols = df.columns
     pvalues = pd.DataFrame(np.nan, index=cols, columns=cols)
     for r in cols:
@@ -69,9 +76,15 @@ def calculate_pvalues(df):
 
 
 def _calculate_vips(model):
+    """VIP (Variable Importance in Projection): summarizes how much each input
+    feature (descriptor) contributes to explaining the Y variables across all
+    PLS components. Features with VIP > 1 are conventionally considered important.
+    Formula: sqrt(p * sum_h(s_h * (w_ih / ||w_h||)^2) / total_s)
+    where s_h is the variance in Y explained by component h.
+    """
     t, w, q = model.x_scores_, model.x_weights_, model.y_loadings_
     p, h = w.shape
-    s = np.diag(t.T @ t @ q.T @ q)
+    s = np.diag(t.T @ t @ q.T @ q)  # variance in Y explained by each component
     total_s = s.sum()
     vips = np.zeros(p)
     for i in range(p):
@@ -81,8 +94,10 @@ def _calculate_vips(model):
 
 
 def _normalize(values, ref=None):
-    """Scale values to [-1, 1] using ref range (defaults to values itself)."""
-    ref = values if ref is None else ref
+    """PLS scores have arbitrary scale; loadings are bounded to [-1, 1].
+    Normalizing scores to [-1, 1] puts them in the same space as the loadings.
+    """
+    ref = values if ref is None else ref # is used to scale reference peptide, aurein 1.2
     lo, hi = ref.min(), ref.max()
     return 2 * (values - lo) / (hi - lo) - 1
 
@@ -95,16 +110,20 @@ def _comp_labels(dim):
 # ── Plotting functions ─────────────────────────────────────────────────────────
 
 def plot_prediction_accuracy(pred_MIC, pred_tox, actual_MIC, actual_tox, title=""):
+    # Compute derived selectivity (log2 tox - log2 MIC) for both predicted and actual
     sel_actual, sel_pred = log2_selectivity(pred_MIC, pred_tox, actual_MIC, actual_tox)
 
+    # Print % of predictions within one dilution step (2-fold) of actual
     print(f"[{title}] MIC accuracy:        {dilution_accuracy(pred_MIC, actual_MIC)}")
     print(f"[{title}] Toxicity accuracy:   {dilution_accuracy(pred_tox, actual_tox)}")
     print(f"[{title}] Selectivity accuracy:{dilution_accuracy(sel_pred, sel_actual)}")
 
+    # ref is a dense x-array used to draw diagonal reference lines (perfect prediction = y=x)
     ref = np.linspace(-3, 30, 150)
     fig, (ax1, ax2, ax3) = plt.subplots(ncols=3, figsize=(15, 5))
     fig.suptitle(title)
 
+    # Each tuple: (axes, x_data, y_data, x_label, y_label, axis_limits)
     panels = [
         (ax1, actual_MIC,   pred_MIC,   "Actual log2 MIC",          "Predicted log2 MIC",          (0, 10)),
         (ax2, actual_tox,   pred_tox,   "Actual log2 Cytotoxicity",  "Predicted log2 Cytotoxicity", (0, 11)),
@@ -114,6 +133,7 @@ def plot_prediction_accuracy(pred_MIC, pred_tox, actual_MIC, actual_tox, title="
         x_data = np.array(x_data).flatten()
         y_data = np.array(y_data).flatten()
         ax.scatter(x_data, y_data, alpha=0.6)
+        # Diagonal lines: solid = perfect, dashed = ±1 log2 (2-fold error), dash-dot = ±2 log2 (4-fold error)
         ax.plot(ref, ref,     'k',    alpha=0.5, label='Perfect')
         ax.plot(ref, ref + 1, '--k',  alpha=0.5, label='±2-fold')
         ax.plot(ref, ref - 1, '--k',  alpha=0.5)
@@ -131,12 +151,14 @@ def plot_loadings_biplot(loadings_x, loadings_y, x_labels, y_labels):
     ax.plot([], label="X loadings", color="darkslategrey")
     ax.plot([], label="Y loadings", color="crimson")
 
+    # X loadings: arrows from origin showing how much each input feature (e.g. amino acid) contributes to each PLS component
     for i, name in enumerate(x_labels):
-        x, y = loadings_x.loc[i, 0], loadings_x.loc[i, 1]
+        x, y = loadings_x.loc[i, 0], loadings_x.loc[i, 1]  # component 1 and 2 loading values
         ax.arrow(0, 0, x, y, color='darkslategrey', width=0.007)
         ax.text(x, y, name, color='black', size=15,
                 bbox=dict(boxstyle="round,pad=0.3", ec="k", fc="white", alpha=0.7))
 
+    # Y loadings: arrows showing how much each output variable (MIC, tox) contributes to each PLS component
     for i, name in enumerate(y_labels):
         x, y = loadings_y.loc[i, 0], loadings_y.loc[i, 1]
         ax.arrow(0, 0, x, y, color='crimson', width=0.007)
@@ -146,6 +168,7 @@ def plot_loadings_biplot(loadings_x, loadings_y, x_labels, y_labels):
     ax.set_title("PLSR X and Y Loadings", size=25, pad=15)
     ax.set_xlabel(_comp_labels(1), size=25)
     ax.set_ylabel(_comp_labels(2), size=25)
+    # Loadings are bounded by [-1, 1]; slight padding to avoid clipping arrow tips
     ax.set_xlim([-1.2, 1.2]); ax.set_ylim([-1.2, 1.2])
     ax.set_aspect('equal')
     ax.legend(fontsize=20)
@@ -153,18 +176,21 @@ def plot_loadings_biplot(loadings_x, loadings_y, x_labels, y_labels):
 
 def plot_scores_biplot(scores_X, loadings_x, loadings_y, colorbar_values,
                        cbar_title, title, cbar_min=0, cbar_max=5, star_scores=None):
+    # Normalize scores
     sx = _normalize(scores_X[0])
     sy = _normalize(scores_X[1])
 
     fig, ax = plt.subplots(figsize=(10, 10))
-
+    # Plot Aurein 1.2 (as star symbol)
     if star_scores is not None:
         star_x = _normalize(pd.Series([star_scores[0]]), ref=scores_X[0])[0]
         star_y = _normalize(pd.Series([star_scores[1]]), ref=scores_X[1])[0]
         ax.scatter(star_x, star_y, s=300, edgecolor='black', marker='*', zorder=5)
     else:
+        # Assumes row 0 is Aurein 1.2 
         ax.scatter(sx.iloc[0], sy.iloc[0], s=300, edgecolor='black', marker='*', zorder=5)
 
+    # zorder=5 ensures the Aurein star renders on top of the scatter points below
     sc = ax.scatter(sx, sy, s=100, c=colorbar_values, cmap=MAKO_CMAP, vmin=cbar_min, vmax=cbar_max)
     cbar = plt.colorbar(sc, ax=ax, fraction=0.046, pad=0.04)
     cbar.set_label(cbar_title, rotation=270, size=25, labelpad=20)
@@ -178,13 +204,16 @@ def plot_scores_biplot(scores_X, loadings_x, loadings_y, colorbar_values,
 
 def plot_3d_scores(scores_X, colorbar_values, cbar_title, title,
                    cbar_min=0, cbar_max=5, star_scores=None):
+    """
+    3D-plot for plotting scores, similar to biplot but shows all three components of PLSR model
+    """
     sx = _normalize(scores_X[0])
     sy = _normalize(scores_X[1])
     sz = _normalize(scores_X[2])
 
     fig = plt.figure(figsize=(7, 5))
     ax = fig.add_subplot(111, projection='3d')
-    fig.patch.set_facecolor('white')
+    fig.patch.set_facecolor('white')  # 3D axes default to grey; force white background
 
     if star_scores is not None:
         star_x = _normalize(pd.Series([star_scores[0]]), ref=scores_X[0])[0]
@@ -192,6 +221,7 @@ def plot_3d_scores(scores_X, colorbar_values, cbar_title, title,
         star_z = _normalize(pd.Series([star_scores[2]]), ref=scores_X[2])[0]
         ax.scatter(star_x, star_y, star_z, s=100, c='w', edgecolor='black', marker='*', zorder=5)
     else:
+        # Assumes row 0 is Aurein 1.2 — if dataset order changes this will silently mark the wrong peptide
         ax.scatter(sx.iloc[0], sy.iloc[0], sz.iloc[0], s=100, c='w', edgecolor='black', marker='*', zorder=5)
 
     p = ax.scatter(sx, sy, sz, c=colorbar_values, cmap=MAKO_CMAP, vmin=cbar_min, vmax=cbar_max, edgecolor='k')
@@ -205,14 +235,17 @@ def plot_3d_scores(scores_X, colorbar_values, cbar_title, title,
 
 def plot_3d_loadings(scores_X, loadings_x, loadings_y, colorbar_values,
                      cbar_title, title, x_labels, y_labels, cbar_min=0, cbar_max=5):
+    #similar in concept to plot_3d_scores, but for loadings
     fig = plt.figure(figsize=(7, 5))
     ax = fig.add_subplot(111, projection='3d')
-    fig.patch.set_facecolor('white')
+    fig.patch.set_facecolor('white')  # 3D axes default to grey; force white background
 
     ax.plot([], [], label="X loadings", color="darkslategrey")
     ax.plot([], [], label="Y loadings", color="crimson")
 
     origin = [0, 0, 0]
+    # zip(*[origin] * n) creates n copies of [0,0,0] then transposes into three lists
+    # of zeros — the separate X/Y/Z start-coordinate arrays that quiver requires
     X1, Y1, Z1 = zip(*[origin] * len(x_labels))
     ax.quiver(X1, Y1, Z1,
               loadings_x.loc[:, 0], loadings_x.loc[:, 1], loadings_x.loc[:, 2],
@@ -233,6 +266,7 @@ def plot_3d_loadings(scores_X, loadings_x, loadings_y, colorbar_values,
     ax.set_ylabel(_comp_labels(2), fontsize=7)
     ax.set_zlabel(_comp_labels(3), fontsize=7)
     ax.set_title("PLSR X and Y Loadings", pad=15)
+    # Chosen empirically
     ax.set_xlim3d(-0.75, 0.75); ax.set_ylim3d(-0.75, 0.75); ax.set_zlim3d(-0.75, 0.75)
     ax.legend()
 
@@ -295,7 +329,7 @@ pep_ids = df2['# of Peptide'].astype(str).tolist()
 
 preds = model.predict(X_pred)
 
-HC10_sel_pred   = preds[:, 6] - preds[:, 0]   # HC10 - MIC_CA
+HC10_sel_pred   = preds[:, 6] - preds[:, 0]   # HC10 (col 6) - MIC_CA (col 0), per OUTPUT_VARS order
 HC10_sel_actual = Y_test.values[:, 1] - Y_test.values[:, 0]
 
 avg_tox  = preds[:, TOX_IDX].mean(axis=1)
@@ -308,6 +342,7 @@ plt.savefig(OUTPUT_DIR / 'accuracy_c_albicans_validation.png', bbox_inches='tigh
 
 # ── Prediction set biplots ─────────────────────────────────────────────────────
 
+# transform() projects new data into the PLS space; model.x_scores_ only holds training scores
 scores_pred = pd.DataFrame(model.transform(X_pred))
 
 plot_scores_biplot(scores_pred, loadings_x, loadings_y, HC10_sel_actual,
@@ -363,7 +398,8 @@ plt.savefig(OUTPUT_DIR / 'prediction_heatmap.png', bbox_inches='tight')
 # ── Pearson correlation heatmap ────────────────────────────────────────────────
 
 corr = preds_labelled.corr()
-mask = np.triu(np.ones_like(corr, dtype=bool))
+mask = np.triu(np.ones_like(corr, dtype=bool))  # mask upper triangle to avoid plotting duplicate symmetric values
+# pval computed for reference/export; not currently overlaid on the heatmap (e.g. as significance stars)
 pval = calculate_pvalues(preds_sorted[SPECIES_LABELS])
 
 plt.figure(figsize=(12, 10))
@@ -395,6 +431,7 @@ fig, ax = plt.subplots()
 vips_df.plot.bar(ax=ax, color='tab:purple', ylabel='VIP value', legend=False)
 plt.savefig(OUTPUT_DIR / 'vip_importance.png', bbox_inches='tight')
 
+# n_repeats=1000 gives stable mean/std estimates; lower values produce noisier importance rankings
 perm = permutation_importance(model, X_train, Y, n_repeats=1000)
 perms_df = pd.DataFrame({
     'Permutation importance': perm.importances_mean,

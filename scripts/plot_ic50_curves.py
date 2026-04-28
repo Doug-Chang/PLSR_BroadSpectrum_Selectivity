@@ -3,7 +3,7 @@
 from pathlib import Path
 import pandas as pd
 import matplotlib.pyplot as plt
-import neutcurve
+import neutcurve # Borrowing infectivity ic50 curvefitting library for ic50 purposes
 
 OUTPUT_DIR = Path('../output/mammalIC50')
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -14,7 +14,7 @@ pd.set_option('display.max_columns', 20)
 pd.set_option('display.width', 500)
 
 #import MIC data sheets
-viabilities = pd.read_excel('../data/mammalian_viability.xlsx', sheet_name=None)  # sera = cell type, virus = experimental replicates
+viabilities = pd.read_excel('../data/mammalian_viability.xlsx', sheet_name=None)  # sera = cell type, virus = experimental replicates. these were previously set to be compatible with the neutcurve workflow
 ic50_storage = {}
 
 

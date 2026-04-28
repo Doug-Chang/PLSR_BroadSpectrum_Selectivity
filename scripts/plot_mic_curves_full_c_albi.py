@@ -37,11 +37,9 @@ for peptide, data in groups:
     # Set axis labels and title on current axes
     ax.set_xlabel('Concentration (μg/mL)',fontsize=15)
     ax.set_ylabel('Cell Viability (%)',fontsize=15)
-#    ax.set_title(f'Peptides {plot_counter-4} to {plot_counter} MIC Graph')
     ax.set_xscale('log')
     ax.xaxis.set_major_formatter(ScalarFormatter())
     ax.set_xlim(0.1,1024)
-    #ax.set_ylim(-50,400)
     # Show the legend on the last plot only
     if plot_counter % 5 == 0 or plot_counter == len(groups):
         ax.legend()
