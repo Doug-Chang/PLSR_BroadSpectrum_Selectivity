@@ -20,20 +20,21 @@ markers = ['o', 's', '^',  'd', '*']
 
 # Set up counter variable
 plot_counter = 0
-marker_counter = 0 #set up marker counter
+marker_counter = 0
+batch_num = 0
 # Loop through groups
 for peptide, data in groups:
     # Check if a new plot needs to be created
     if plot_counter % 5 == 0:
         fig, ax = plt.subplots()
-        
+
     # Plot data on current axes
     ax.errorbar(data['con'], data['Viability'], yerr=data['sd'], label=peptide, marker = markers[marker_counter], capsize=2)
-    
+
     # Increment counter
     plot_counter += 1
     marker_counter +=1
-    
+
     # Set axis labels and title on current axes
     ax.set_xlabel('Concentration (μg/mL)',fontsize=15)
     ax.set_ylabel('Hemolysis (%)',fontsize=15)
@@ -43,9 +44,8 @@ for peptide, data in groups:
     # Show the legend on the last plot only
     if plot_counter % 5 == 0 or plot_counter == len(groups):
         ax.legend()
-    
         plt.axhline(y=0, color='gray', linestyle='-')
-        batch = plot_counter // 5
-        fig.savefig(OUTPUT_DIR / f'batch_{batch:02d}.png', bbox_inches='tight')
+        batch_num += 1
+        fig.savefig(OUTPUT_DIR / f'batch_{batch_num:02d}.png', bbox_inches='tight')
         plt.close(fig)
-        marker_counter = 0 #reset counter
+        marker_counter = 0
