@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+title: "PLSR-based Antimicrobial Peptide Selectivity Prediction"
+message: "If you use this code, please cite the associated paper."
+authors:
+  - family-names: Chang
+    given-names: Douglas H.
+  - family-names: Lee
+    given-names: Myung-Ryul
+  - family-names: Wang
+    given-names: Nathan
+  - family-names: Lynn
+    given-names: David M.
+  - family-names: Palecek
+    given-names: Sean P.
+doi: 10.1021/acsinfecdis.3c00468
+version: 1.0.0
+date-released: 2026-04-27
+preferred-citation:
+  type: article
+  title: "Establishing Quantifiable Guidelines for Antimicrobial α/β-Peptide Design: A Partial Least-Squares Approach to Improve Antimicrobial Activity and Reduce Mammalian Cell Toxicity"
+  authors:
+    - family-names: Chang
+      given-names: Douglas H.
+    - family-names: Lee
+      given-names: Myung-Ryul
+    - family-names: Wang
+      given-names: Nathan
+    - family-names: Lynn
+      given-names: David M.
+    - family-names: Palecek
+      given-names: Sean P.
+  journal: "ACS Infectious Diseases"
+  year: 2023
+  volume: 9
+  issue: 12
+  start: 2632
+  end: 2651
+  doi: 10.1021/acsinfecdis.3c00468
