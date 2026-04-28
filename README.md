@@ -20,6 +20,8 @@ This work applies **Partial Least Squares Regression (PLSR)** to map eight pepti
 ```bash
 git clone https://github.com/Doug-Chang/PLSR_BroadSpectrum_Selectivity.git
 cd PLSR_BroadSpectrum_Selectivity
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 cd scripts
 python pls_analysis.py
