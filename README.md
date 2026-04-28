@@ -4,15 +4,28 @@ This repository contains the analysis pipeline for the paper:
 
 > Chang, D. et al. Establishing Quantifiable Guidelines for Antimicrobial α/β-Peptide Design: A Partial Least-Squares Approach to Improve Antimicrobial Activity and Reduce Mammalian Cell Toxicity. *ACS Infectious Diseases* (2024). https://doi.org/10.1021/acsinfecdis.3c00468
 
+## Overview
+- Predict antimicrobial peptide selectivity using PLSR
+- Input: 8 peptide descriptors → Output: MIC + toxicity across species
+- Reproduces figures and analysis from Chang et al. (2024)
+
 ## Background
 
 Antimicrobial resistance is driving demand for peptide-based therapeutics with activity across divergent pathogens. α/β-Peptides — sequences that incorporate cyclic β-amino acids (here, ACPC: α-aminocyclopentane carboxylic acid) alongside standard α-residues — offer improved protease resistance and tunable secondary structure compared to all-α AMPs, but the high-dimensional relationship between their physicochemical properties and biological activity makes rational design difficult.
 
 This work applies **Partial Least Squares Regression (PLSR)** to map eight peptide descriptors (helicity, hydrophobicity, charge, α/β ratio, etc.) to minimum inhibitory concentrations (MICs) and cytotoxicity values across nine microbial and mammalian targets simultaneously. The resulting 3-component model reveals which structural features drive broad-spectrum antimicrobial activity vs. mammalian cell toxicity, enabling quantitative selectivity prediction on a novel validation set.
 
-## Repository structure
+## Quick start
 
+```bash
+git clone https://github.com/Doug-Chang/PLSR_BroadSpectrum_Selectivity.git
+cd PLSR_BroadSpectrum_Selectivity
+pip install -r requirements.txt
+cd scripts
+python pls_analysis.py
 ```
+
+## Repository structure
 data/           — Raw experimental data (Excel)
 scripts/        — Analysis scripts (run from the scripts/ directory)
 output/         — Generated figures (gitignored, created on first run)
