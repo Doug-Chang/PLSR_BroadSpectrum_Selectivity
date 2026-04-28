@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import neutcurve
 
-OUTPUT_DIR = Path('../output/plotting_SI/mammalIC50')
+OUTPUT_DIR = Path('../output/mammalIC50')
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 #Set some pandas display options
@@ -14,7 +14,7 @@ pd.set_option('display.max_columns', 20)
 pd.set_option('display.width', 500)
 
 #import MIC data sheets
-viabilities = pd.read_excel('../data/mammalian_hillcurve.xlsx', sheet_name=None)  # sera = cell type, virus = experimental replicates
+viabilities = pd.read_excel('../data/mammalian_viability.xlsx', sheet_name=None)  # sera = cell type, virus = experimental replicates
 ic50_storage = {}
 
 
