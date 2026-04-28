@@ -2,7 +2,7 @@
 
 This repository contains the analysis pipeline for the paper:
 
-> Chang, D. et al. Establishing Quantifiable Guidelines for Antimicrobial α/β-Peptide Design: A Partial Least-Squares Approach to Improve Antimicrobial Activity and Reduce Mammalian Cell Toxicity. *ACS Infectious Diseases* (2024). https://doi.org/10.1021/acsinfecdis.3c00468
+> Chang, D. et al. Establishing Quantifiable Guidelines for Antimicrobial α/β-Peptide Design: A Partial Least-Squares Approach to Improve Antimicrobial Activity and Reduce Mammalian Cell Toxicity. *ACS Infectious Diseases* **9**, 2632–2651 (2023). https://doi.org/10.1021/acsinfecdis.3c00468
 
 ## Overview
 - Predict antimicrobial peptide selectivity using PLSR
@@ -49,7 +49,7 @@ Run core model scripts in order:
 |------|--------|---------|
 | 1 | `cv_component_selection.py` | LOO cross-validation over 1–8 components; plots MSE and X/Y variance explained to justify 3-component model |
 | 2 | `pca_analysis.py` | PCA of training vs. prediction sets to confirm applicability domain overlap & diversity check |
-| 3 | `pls_analysis.py` | Fit 3-component PLSR; generate loadings/scores biplots (2D & 3D), prediction accuracy plots, VIP scores, permutation importance, and selectivity heatmaps |
+| 3 | `pls_analysis.py` | Fit 3-component PLSR; generate loadings/scores biplots (2D & 3D), prediction accuracy plots, VIP scores, permutation importance, and selectivity heatmaps. Validation uses only the 129 novel peptides in `prediction_set.xlsx` (the 18 training peptides also present in that file are excluded via the `Set` column). |
 
 Supplementary / visualization scripts (order-independent):
 
@@ -81,6 +81,10 @@ Supplementary / visualization scripts (order-independent):
 | `MIC_EC`, `MIC_SA` | log₂ MIC (μg/mL) vs. *E. coli*, *S. aureus* |
 | `IC50_3T3`, `IC50_HUVEC` | log₂ IC50 (μg/mL) vs. 3T3 fibroblasts and HUVECs |
 | `HC10` | log₂ concentration (μg/mL) at 10% hemolysis |
+
+## Note
+
+`prediction_set.xlsx` includes the 18 training peptides alongside 129 novel peptides. Relative to Chang et al. (2023), validation metrics in `pls_analysis.py` are now computed on the 129 novel peptides only (filtered via the `Set` column). The effect is minor — *C. albicans* MIC R² shifts from 0.386 → 0.331, dilution-accuracy figures change by <1 percentage point — and no conclusions are affected.
 
 ## Requirements
 

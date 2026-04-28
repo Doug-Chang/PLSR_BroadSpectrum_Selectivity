@@ -318,11 +318,15 @@ plt.savefig(OUTPUT_DIR / 'accuracy_broad_spectrum.png', bbox_inches='tight')
 for i in range(9):
     plot_prediction_accuracy(train_pred[:, i], avg_tox_pred_tr,
                              Y.values[:, i], avg_tox_true_tr, title=OUTPUT_VARS[i])
-    plt.savefig(OUTPUT_DIR / f'accuracy_{OUTPUT_VARS[i]}.png', bbox_inches='tight')
+    fig = plt.gcf()
+    left_ax_bbox = fig.axes[0].get_tightbbox(fig.canvas.get_renderer()).transformed(fig.dpi_scale_trans.inverted())
+    plt.savefig(OUTPUT_DIR / f'accuracy_{OUTPUT_VARS[i]}.png', bbox_inches=left_ax_bbox)
 
 # ── Load prediction set ────────────────────────────────────────────────────────
 
 df2 = load_and_preprocess(PREDICTION_DATA_PATH)
+df2 = df2[df2['Set'] == 'Prediction'].reset_index(drop=True)  # exclude the 18 training peptides re-listed in this file. Paper originally included these, but filtering these out doesn't change conclusions
+
 X_pred  = df2[DESCRIPTORS]
 Y_test  = df2[['MIC', 'Hemolysis']]
 pep_ids = df2['# of Peptide'].astype(str).tolist()
