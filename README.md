@@ -85,7 +85,9 @@ Supplementary / visualization scripts (order-independent):
 
 ## Note
 
-`prediction_set.xlsx` includes the 18 training peptides alongside 129 novel peptides. By default, `pls_analysis.py` runs predictions on all 147 peptides (R² = 0.386 for *C. albicans* MIC), matching the analysis in Chang et al. (2023). To reproduce the Q² reported in Fig. S11b (test-set *C. albicans* R² = 0.331), uncomment the filter line in `pls_analysis.py` to restrict validation to the 129 novel peptides only. Dilution-accuracy figures change by <1 percentage point and no conclusions are affected.
+`prediction_set.xlsx` includes the training peptides alongside the remaining library peptides. By default, `pls_analysis.py` runs predictions on all 147 peptides (R² = 0.386 for *C. albicans* MIC), matching Chang et al. (2023). While my paper reports 149 peptides, 2 duplicates were removed from this repository to share deduplicated data, with no change to performance or conclusions. To reproduce the Q² reported in Fig. S11b (test-set *C. albicans* R² = 0.331 & *hRBC* R² = 0..769), uncomment the filter line in `pls_analysis.py` to restrict validation to the novel peptides only.
+
+scikit-learn PLSR model has been updated over the years, which also changes magnitudes of coefficients shown in Figure 3a, but permutation and VIP importance (Figure 3b,c) are identical and support the importance of hydriphobicity as a major driving factor for toxicity.
 
 ## Requirements
 

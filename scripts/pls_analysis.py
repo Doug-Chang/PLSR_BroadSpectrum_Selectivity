@@ -324,11 +324,11 @@ for i in range(9):
 
 # ── Load prediction set ────────────────────────────────────────────────────────
 
-df2 = load_and_preprocess(PREDICTION_DATA_PATH)  # Includes full library (training + novel peptides); R² uses all peptides.
-#df2 = df2[df2['Set'] == 'Prediction'].reset_index(drop=True)  # Uncomment to restrict to novel peptides only — reproduces Q² (test-set R²) reported in Fig. S11.
+df2 = load_and_preprocess(PREDICTION_DATA_PATH)  # Includes full library (training + leftover peptides); R² uses all peptides (Figure S11).
+#df2 = df2[df2['Set'] == 'Prediction'].reset_index(drop=True)  # Uncomment to restrict to other peptides in library only — reproduces Q² (test-set R²) reported in Fig. S11.
 
 X_pred  = df2[DESCRIPTORS]
-Y_test  = df2[['MIC', 'Hemolysis']]
+Y_test  = df2[['MIC', 'Hemolysis']] # C. albicans & hRBC data used as external validation (test) set
 pep_ids = df2['# of Peptide'].astype(str).tolist()
 
 preds = model.predict(X_pred)
