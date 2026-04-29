@@ -7,7 +7,7 @@ This repository contains the analysis pipeline for the paper:
 ## Overview
 - Predict antimicrobial peptide selectivity using PLSR
 - Input: 8 peptide descriptors → Output: MIC + toxicity across species
-- Reproduces figures and analysis from Chang et al. (2024)
+- Reproduces figures and analysis from Chang et al. (2023)
 
 ## Background
 
@@ -28,6 +28,7 @@ python pls_analysis.py
 ```
 
 ## Repository structure
+```
 data/           — Raw experimental data (Excel)
 scripts/        — Analysis scripts (run from the scripts/ directory)
 output/         — Generated figures (gitignored, created on first run)
@@ -49,7 +50,7 @@ Run core model scripts in order:
 |------|--------|---------|
 | 1 | `cv_component_selection.py` | LOO cross-validation over 1–8 components; plots MSE and X/Y variance explained to justify 3-component model |
 | 2 | `pca_analysis.py` | PCA of training vs. prediction sets to confirm applicability domain overlap & diversity check |
-| 3 | `pls_analysis.py` | Fit 3-component PLSR; generate loadings/scores biplots (2D & 3D), prediction accuracy plots, VIP scores, permutation importance, and selectivity heatmaps. Validation uses only the 129 novel peptides in `prediction_set.xlsx` (the 18 training peptides also present in that file are excluded via the `Set` column). |
+| 3 | `pls_analysis.py` | Fit 3-component PLSR; generate loadings/scores biplots (2D & 3D), prediction accuracy plots, VIP scores, permutation importance, and selectivity heatmaps. By default, validation uses all peptides in `prediction_set.xlsx` (R² = 0.386 for *C. albicans*). Uncomment the filter line to restrict to novel peptides only (Q² = 0.331, as reported in Fig. S11). |
 
 Supplementary / visualization scripts (order-independent):
 
@@ -84,7 +85,7 @@ Supplementary / visualization scripts (order-independent):
 
 ## Note
 
-`prediction_set.xlsx` includes the 18 training peptides alongside 129 novel peptides. Relative to Chang et al. (2023), validation metrics in `pls_analysis.py` are now computed on the 129 novel peptides only (filtered via the `Set` column). The effect is minor — *C. albicans* MIC R² shifts from 0.386 → 0.331, dilution-accuracy figures change by <1 percentage point — and no conclusions are affected.
+`prediction_set.xlsx` includes the 18 training peptides alongside 129 novel peptides. By default, `pls_analysis.py` runs predictions on all 147 peptides (R² = 0.386 for *C. albicans* MIC), matching the analysis in Chang et al. (2023). To reproduce the Q² reported in Fig. S11b (test-set *C. albicans* R² = 0.331), uncomment the filter line in `pls_analysis.py` to restrict validation to the 129 novel peptides only. Dilution-accuracy figures change by <1 percentage point and no conclusions are affected.
 
 ## Requirements
 

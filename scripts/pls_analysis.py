@@ -324,8 +324,8 @@ for i in range(9):
 
 # ── Load prediction set ────────────────────────────────────────────────────────
 
-df2 = load_and_preprocess(PREDICTION_DATA_PATH)
-df2 = df2[df2['Set'] == 'Prediction'].reset_index(drop=True)  # exclude the 18 training peptides re-listed in this file. Paper originally included these, but filtering these out doesn't change conclusions
+df2 = load_and_preprocess(PREDICTION_DATA_PATH)  # Includes full library (training + novel peptides); R² uses all peptides.
+#df2 = df2[df2['Set'] == 'Prediction'].reset_index(drop=True)  # Uncomment to restrict to novel peptides only — reproduces Q² (test-set R²) reported in Fig. S11.
 
 X_pred  = df2[DESCRIPTORS]
 Y_test  = df2[['MIC', 'Hemolysis']]
